@@ -1,11 +1,14 @@
 #:kivy 1.11.1
+<Environment>:
 
-<SnakeGame>:
+
+<Cell>:
 	canvas:
 		Rectangle:
-			pos: self.center_x - 5, 0
-            size: 10, self.height
+			#size and position on graph is different from those in program
+			pos: self.pos_on_graph#: (self.x, self.y)
+            size: self.size_on_graph#: (self.width, self.height)
 
-	GridLayout:
-		cols: 10
-		rows: 10
+	#GridLayout:
+	#	cols: 10
+	#	rows: 10
