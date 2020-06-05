@@ -33,6 +33,8 @@ def drawGrid():
 			rect = pygame.Rect(x*GRID_SIZE, y*GRID_SIZE,GRID_SIZE, GRID_SIZE)
 			pygame.draw.rect(display, WHITE, rect, 1)
 
+#function for snake movement
+#the snake head moves according to the key press
 def moveSnakeHead(key, grid_size, snake_row, snake_col):
 	if key == pygame.K_LEFT:
 		snake_col -= grid_size
