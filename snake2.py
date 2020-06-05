@@ -26,6 +26,10 @@ snakeHead = pygame.transform.scale(snakeHead, (GRID_SIZE, GRID_SIZE)) #scale the
 snakeRow = math.floor(HEIGHT/GRID_SIZE/2)*GRID_SIZE
 snakeCol = math.floor(WIDTH/GRID_SIZE/2)*GRID_SIZE
 
+#!!!!!!direction of the snake head. Can change into an array once we need to update the whole snake
+snakeRow_dir = 0
+snakeCol_dir = 0
+
 #load the food
 food = pygame.image.load("food_mouse.jpg")
 food = pygame.transform.scale(food, (GRID_SIZE, GRID_SIZE))
@@ -34,6 +38,9 @@ food = pygame.transform.scale(food, (GRID_SIZE, GRID_SIZE))
 #initialize location of food at random location on canvas
 foodRow = randint(0,WIDTH/GRID_SIZE)*GRID_SIZE
 foodCol = randint(0,HEIGHT/GRID_SIZE)*GRID_SIZE
+
+#add a clock
+clock = pygame.time.Clock()
 
 
 #draw the grid on the canvas by looping through the whole canvas and drawing small squares
@@ -45,23 +52,28 @@ def drawGrid():
 
 #function for snake movement
 #the snake head moves according to the key press
-def moveSnakeHead(key, grid_size, snake_row, snake_col):
+#This function updates the direction of the snake
+def moveSnakeHead(key, grid_size, snake_row_dir, snake_col_dir):
 	if key == pygame.K_LEFT:
-		snake_col -= grid_size
+		snake_col_dir -= grid_size
+		snake_row_dir = 0
 	elif key == pygame.K_RIGHT:
-		snake_col += grid_size
+		snake_col_dir += grid_size
+		snake_row_dir = 0 
 	elif key == pygame.K_UP:
-		snake_row -= grid_size
+		snake_row_dir -= grid_size
+		snake_col_dir = 0
 	elif key == pygame.K_DOWN:
-		snake_row += grid_size
-	return (snake_row, snake_col)
+		snake_row_dir += grid_size
+		snake_col_dir = 0
+	return (snake_row_dir, snake_col_dir)
 	#we also have to restrict movement, eventually, on how snake cant move back on itself
 	#i.e. cant make a direct 180 degree turn once its lenght > 1
 
 #function for generating new food once initial food has been eaten
 def newfood(food_row, food_col, snake_row, snake_col, grid_size):
-	newfoodRow = randint(0,WIDTH/GRID_SIZE)*GRID_SIZE
-	newfoodCol = randint(0,HEIGHT/GRID_SIZE)*GRID_SIZE
+	newfoodRow = randint(0,(WIDTH-GRID_SIZE)/GRID_SIZE)*GRID_SIZE
+	newfoodCol = randint(0,(HEIGHT-GRID_SIZE)/GRID_SIZE)*GRID_SIZE
 	#we don't want the food to appear in the same space it just was, 
 	#so we iterate until both the row and column are no longer the same as what they just were.
 	#food location can repeat over the course of the game but not back-to-back
@@ -106,11 +118,16 @@ while stop == False:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			stop = True
-		if event.type == pygame.KEYDOWN: #if a key is pressed, the snakehead location is updated 
+		if event.type == pygame.KEYDOWN: 
 			key = event.key
-			snakeRow, snakeCol = moveSnakeHead(key, GRID_SIZE, snakeRow, snakeCol)
+			#if a key is pressed then the direction of the snake is updated 
+			snakeRow_dir, snakeCol_dir = moveSnakeHead(key, GRID_SIZE, snakeRow_dir, snakeCol_dir)
+	#for each loop, the snake head moves in the direction assigned
+	snakeRow, snakeCol = snakeRow+snakeRow_dir, snakeCol+snakeCol_dir
+
+	#update food position if the snake head passes the food
 	if snakeRow == foodRow and snakeCol == foodCol:
-		foodRow, foodCol = newfood(foodRow, foodCol, snakeRow, snakeCol, GRID_SIZE)
+			foodRow, foodCol = newfood(foodRow, foodCol, snakeRow, snakeCol, GRID_SIZE)
 		#growth()
 		#something to add to length of snake
 	#if :
@@ -125,7 +142,7 @@ while stop == False:
 	display.fill(BLACK)
 	drawGrid() #draw the grid
 	display.blit(snakeHead,(snakeCol, snakeRow)) #snake is placed column first and then row 
-	display.blit(food,(foodRow, foodCol))
+	display.blit(food,(foodCol, foodRow))
 	pygame.display.flip() #update the entire canvas
 
 pygame.quit()
