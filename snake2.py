@@ -56,11 +56,12 @@ while stop == False:
 			key = event.key
 			snakeRow, snakeCol = moveSnakeHead(key, GRID_SIZE, snakeRow, snakeCol)
 	pygame.display.update() 
-	 '''fill the canvas with black. In pygame, 
+	'''
+	fill the canvas with black. In pygame, 
 	 the canvas is redraw after each loop so in order to draw the 
 	 new picture the original picture needs to be coverd by black first,
 	 otherwise, when the new snake head is drawn the previous snake head is still on the canvas
-	 '''
+	'''
 	display.fill(BLACK)
 	drawGrid() #draw the grid
 	display.blit(snakeHead,(snakeCol,snakeRow)) #snake is placed column first and then row 
