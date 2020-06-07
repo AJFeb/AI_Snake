@@ -26,6 +26,19 @@ snakeHead = pygame.transform.scale(snakeHead, (GRID_SIZE, GRID_SIZE)) #scale the
 snakeRow = math.floor(HEIGHT/GRID_SIZE/2)*GRID_SIZE
 snakeCol = math.floor(WIDTH/GRID_SIZE/2)*GRID_SIZE
 
+#initialize our snake body
+#members of the list will be of the form [[row1, col1], [row2, col2], etc]
+snakeBody = []
+
+#each individual block that will be added to our snake body has a row and col coordinate
+snakeBlock = []
+snakeBlock.append(snakeRow)
+snakeBlock.append(snakeCol)
+#updating our snake body to include the head we have initiliazed at the screen's center
+snakeBody.append(snakeBlock)
+snakeLength = 1
+#can probably use snakeLength to keep track of the score -- score = snakeLength - 1
+
 #!!!!!!direction of the snake head. Can change into an array once we need to update the whole snake
 snakeRow_dir = 0
 snakeCol_dir = 0
@@ -36,12 +49,12 @@ food = pygame.transform.scale(food, (GRID_SIZE, GRID_SIZE))
 #food_rect = food.get_rect() #i dont think this line is needed
 
 #initialize location of food at random location on canvas
+#have to change this so it doesnt spawn in center of screen, where the snake starts
 foodRow = randint(0,WIDTH/GRID_SIZE)*GRID_SIZE
 foodCol = randint(0,HEIGHT/GRID_SIZE)*GRID_SIZE
 
 #add a clock
 clock = pygame.time.Clock()
-
 
 #draw the grid on the canvas by looping through the whole canvas and drawing small squares
 def drawGrid():
@@ -71,41 +84,59 @@ def moveSnakeHead(key, grid_size, snake_row_dir, snake_col_dir):
 	#i.e. cant make a direct 180 degree turn once its lenght > 1
 
 #function for generating new food once initial food has been eaten
-def newfood(food_row, food_col, snake_row, snake_col, grid_size):
+def newfood(food_row, food_col, snake_body_list, grid_size):
 	newfoodRow = randint(0,(WIDTH-GRID_SIZE)/GRID_SIZE)*GRID_SIZE
 	newfoodCol = randint(0,(HEIGHT-GRID_SIZE)/GRID_SIZE)*GRID_SIZE
-	#we don't want the food to appear in the same space it just was, 
-	#so we iterate until both the row and column are no longer the same as what they just were.
-	#food location can repeat over the course of the game but not back-to-back
-	
-	#newfood location also cannot be a space the snakehead or body already occupies
-	## UPDATE this once snake body is made so food doesnt spawn in snake body either
+	"""
+	we don't want the food to appear in the same space it just was, 
+	so we iterate until both the row and column are no longer the same as what they just were.
+	food location can repeat over the course of the game but not back-to-back
+	newfood location also cannot be a space any of the snake body already occupies
+	"""
 	if newfoodRow != food_row and newfoodCol != food_col:
-		if newfoodRow != snake_row and newfoodCol != snake_col:
-			return (newfoodRow, newfoodCol)
-		else:
-			while newfoodRow == snake_row and newfoodCol == snake_col:
-				newfoodRow = randint(0,WIDTH/GRID_SIZE)*GRID_SIZE
-				newfoodCol = randint(0,HEIGHT/GRID_SIZE)*GRID_SIZE
-			return (newfoodRow, newfoodCol)
+		for block in snake_body_list:
+			if newfoodRow != block[0] and newfoodCol != block[1]:
+				return (newfoodRow, newfoodCol)
+			else:
+				while newfoodRow == block[0] and newfoodCol == block[1]:
+					newfoodRow = randint(0,(WIDTH-GRID_SIZE)/GRID_SIZE)*GRID_SIZE
+					newfoodCol = randint(0,(HEIGHT-GRID_SIZE)/GRID_SIZE)*GRID_SIZE
+				return (newfoodRow, newfoodCol)
 	else:
 		while newfoodRow == food_row and newfoodCol == food_col:
 			#change this inner while loop for the snake body b/c the snake head space is occupying
-			#the same space as the food right now, eating it, so that is already covered in our 
+			#the same space as the food right now, "eating" it, so that is already covered in our 
 			#outer while loop 
-			while newfoodRow == snake_row and newfoodCol == snake_col:
-				newfoodRow = randint(0,WIDTH/GRID_SIZE)*GRID_SIZE
-				newfoodCol = randint(0,HEIGHT/GRID_SIZE)*GRID_SIZE
-			newfoodRow = randint(0,WIDTH/GRID_SIZE)*GRID_SIZE
-			newfoodCol = randint(0,HEIGHT/GRID_SIZE)*GRID_SIZE
+			for block in snake_body_list:
+				while newfoodRow == block[0] and newfoodCol == block[1]:
+					newfoodRow = randint(0,(WIDTH-GRID_SIZE)/GRID_SIZE)*GRID_SIZE
+					newfoodCol = randint(0,(HEIGHT-GRID_SIZE)/GRID_SIZE)*GRID_SIZE
+			newfoodRow = randint(0,(WIDTH-GRID_SIZE)/GRID_SIZE)*GRID_SIZE
+			newfoodCol = randint(0,(HEIGHT-GRID_SIZE)/GRID_SIZE)*GRID_SIZE
 		return (newfoodRow, newfoodCol)
 
 #function for growing snake's length
 #snake length grows when location of snakehead on grid = location of food on grid
-#def growth():
-#	pass
+def growth(snake_row, snake_col, snake_body_list, snake_length, grid_size):
+	#whenever food is eaten, we create a new block [row,col] to be added to our snake body list of lists
+	#we also update the length of the snake
+	snake_block = [snake_row, snake_col]
+	snake_length += 1
+	snake_body_list.append(snake_block)
+	
+	#draw new, white blocks after first snake head block in snake body list
+	#!! tbh, this for loop may be unnecessary because we run growth function each time we add a block so
+	#a rectangle is already being drawn... dang
+	for i in range(1,len(snake_body_list)):
+		pygame.draw.rect(display, WHITE, [snake_body_list[i][0], snake_body_list[i][1], grid_size, grid_size])
+	
+	#so this should work, but it will get rid of our head with the image and we'll just have white blocks, making
+	#the above for loop even more unnecessary lol but im cool with that
+	if len(snake_body_list) > snake_length:
+		del snake_body_list[0]
+	#snake body length increases when we append a new block to its tail, so as the snake keeps moving we must cut off its head
+	#to maintain accurate length of snake as it continues growing
 
-#functions for how the snake can die
 #def boundary_death():
 #	pass
 
@@ -127,9 +158,8 @@ while stop == False:
 
 	#update food position if the snake head passes the food
 	if snakeRow == foodRow and snakeCol == foodCol:
-			foodRow, foodCol = newfood(foodRow, foodCol, snakeRow, snakeCol, GRID_SIZE)
-		#growth()
-		#something to add to length of snake
+		growth(snakeRow, snakeCol, snakeBody, snakeLength, GRID_SIZE)
+		foodRow, foodCol = newfood(foodRow, foodCol, snakeBody, GRID_SIZE)
 	#if :
 		#boundary_death()
 	pygame.display.update() 
