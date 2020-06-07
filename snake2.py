@@ -1,7 +1,9 @@
 import pygame
 from random import randint
 import math
+import random
 
+random.seed(42) 
 #initialize pygame
 pygame.init()
 
@@ -11,8 +13,9 @@ WIDTH = 300
 display = pygame.display.set_mode((WIDTH,HEIGHT))
 
 #define colors
-WHITE = (200, 200, 200)
+WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+GREEN = (124,252,0)
 
 #define the size of the grid
 GRID_SIZE = 20
@@ -93,6 +96,13 @@ def newfood(food_row, food_col, snake_body_list, grid_size):
 	food location can repeat over the course of the game but not back-to-back
 	newfood location also cannot be a space any of the snake body already occupies
 	"""
+
+	while [newfoodCol,newfoodRow] in snake_body_list:
+		newfoodRow = randint(0,(WIDTH-GRID_SIZE)/GRID_SIZE)*GRID_SIZE
+		newfoodCol = randint(0,(HEIGHT-GRID_SIZE)/GRID_SIZE)*GRID_SIZE
+	return (newfoodRow,newfoodCol)
+
+	'''
 	if newfoodRow != food_row and newfoodCol != food_col:
 		for block in snake_body_list:
 			if newfoodRow != block[0] and newfoodCol != block[1]:
@@ -114,26 +124,30 @@ def newfood(food_row, food_col, snake_body_list, grid_size):
 			newfoodRow = randint(0,(WIDTH-GRID_SIZE)/GRID_SIZE)*GRID_SIZE
 			newfoodCol = randint(0,(HEIGHT-GRID_SIZE)/GRID_SIZE)*GRID_SIZE
 		return (newfoodRow, newfoodCol)
+	'''
 
 #function for growing snake's length
 #snake length grows when location of snakehead on grid = location of food on grid
-def growth(snake_row, snake_col, snake_body_list, snake_length, grid_size):
+#def growth(snake_row, snake_col):
 	#whenever food is eaten, we create a new block [row,col] to be added to our snake body list of lists
 	#we also update the length of the snake
-	snake_block = [snake_row, snake_col]
-	snake_length += 1
-	snake_body_list.append(snake_block)
+	#snake_block = [snake_row, snake_col]
+	#snake_length += 1
+	#snakeBody.insert(0,snake_block)
+	#snakeBody.pop()
+
+	#return snake_body_list
 	
 	#draw new, white blocks after first snake head block in snake body list
 	#!! tbh, this for loop may be unnecessary because we run growth function each time we add a block so
 	#a rectangle is already being drawn... dang
-	for i in range(1,len(snake_body_list)):
-		pygame.draw.rect(display, WHITE, [snake_body_list[i][0], snake_body_list[i][1], grid_size, grid_size])
+	#for i in range(1,len(snake_body_list)):
+		#pygame.draw.rect(display, WHITE, [snake_body_list[i][0], snake_body_list[i][1], grid_size, grid_size])
 	
 	#so this should work, but it will get rid of our head with the image and we'll just have white blocks, making
 	#the above for loop even more unnecessary lol but im cool with that
-	if len(snake_body_list) > snake_length:
-		del snake_body_list[0]
+	#if len(snake_body_list) > snake_length:
+		#del snake_body_list[0]
 	#snake body length increases when we append a new block to its tail, so as the snake keeps moving we must cut off its head
 	#to maintain accurate length of snake as it continues growing
 
@@ -155,13 +169,18 @@ while stop == False:
 			snakeRow_dir, snakeCol_dir = moveSnakeHead(key, GRID_SIZE, snakeRow_dir, snakeCol_dir)
 	#for each loop, the snake head moves in the direction assigned
 	snakeRow, snakeCol = snakeRow+snakeRow_dir, snakeCol+snakeCol_dir
-
+	snakeBody.insert(0,[snakeCol,snakeRow])
+	tail = snakeBody.pop()
+	print(snakeBody, "not hit")
 	#update food position if the snake head passes the food
 	if snakeRow == foodRow and snakeCol == foodCol:
-		growth(snakeRow, snakeCol, snakeBody, snakeLength, GRID_SIZE)
+		#growth(snakeRow, snakeCol,snakeLength, GRID_SIZE)
+		snakeBody.append(tail)
 		foodRow, foodCol = newfood(foodRow, foodCol, snakeBody, GRID_SIZE)
+		print(snakeBody, "hit food")
 	#if :
-		#boundary_death()
+		#boundary_death()	
+
 	pygame.display.update() 
 	'''
 	fill the canvas with black. In pygame, 
@@ -173,6 +192,10 @@ while stop == False:
 	drawGrid() #draw the grid
 	display.blit(snakeHead,(snakeCol, snakeRow)) #snake is placed column first and then row 
 	display.blit(food,(foodCol, foodRow))
+	for i in range(1,len(snakeBody)):
+		snake_bod_rect = [snakeBody[i][0], snakeBody[i][1], GRID_SIZE, GRID_SIZE]
+		pygame.draw.rect(display, WHITE, snake_bod_rect)
+		pygame.draw.rect(display, GREEN, snake_bod_rect,1)
 	pygame.display.flip() #update the entire canvas
 
 pygame.quit()
