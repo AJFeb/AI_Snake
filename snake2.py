@@ -137,11 +137,11 @@ def main(canvasWidth, canvasHeight, gridSize):
 			pygame.draw.rect(display, GREEN, snake_bod_rect,1)
 		#Snake dies if the snake head reaches the boundaries of the screen or if the snake head touches any part of snake body
 			if snakeObj.body[0] == snakeObj.body[i]:
-				print("Game Over")
+				#print("Game Over")
 				CURRENT_SCORE = 0
 				GameOver = True
 		if snakeObj.body[0][0] > canvasHeight or snakeObj.body[0][0] < 0 or snakeObj.body[0][1] > canvasWidth or snakeObj.body[0][1] < 0:
-				print("Game Over")
+				#print("Game Over")
 				CURRENT_SCORE = 0
 				GameOver = True
 		bestSurface, bestRect = displayText(display, "Best Score: "+str(BEST_SCORE), 20, canvasWidth/2, 20, "Times")
