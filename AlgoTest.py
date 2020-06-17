@@ -1,5 +1,6 @@
 import numpy as np 
 import copy
+from random import randint
 
 #input neurons, total of 7 features 
 """
@@ -23,9 +24,10 @@ layer_num: number of hidden layers
 output_num: number final output
 neuron_num: A list indicating the number of neurons in each layer 
 """
-#This function returns a list of lists where each inner list if one network/chormosome and the entire list is a collection of networks
+#This function returns a list of lists where each inner list is one network/chormosome and the entire list is a collection of networks
 def initPopMat(input_num, pop_num, layer_num, output_num, neuron_nums): 
 	vec_len = 0
+	gen_num = 0
 	for j in range(len(neuron_nums)):
 		if j == 0:
 			vec_len += input_num*neuron_nums[j]
@@ -64,6 +66,57 @@ def vecToMat(vector, input_num, layer_num, output_num, neuron_nums): #vector to 
 	result.append(lastMat)
 	return result
 
+#--------------------------------
+
+#creating a list of the 25% most fit snakes from the previous generation
+#from which we will create children in our succeeding generation
+def bestParents(scores):
+	scores.sort(reverse = True)
+	best = []
+	i = 0
+	while i < len(scores)/4:
+		best.append(scores[i])
+	return best
+
+#creating random pairings between each of the best snakes
+def pairings(best):
+	pairs = []
+	for parent in best:
+		rand_index = randint(0, len(best)-1)
+		#so that each snake is guaranteed to be a mother and father at elast once
+		pairs.append([parent, best[rand_index]])
+		pairs.append([best[rand_index], parent])
+	return pairs
+
+#create children for the next generation that are random combinations of their parents
+#and are of the same length as each parent
+def offspring(pairs):
+	offsprings = []
+	for i in range(len(pairs)-1):
+		mom = pairs[i][0]
+		dad = pairs[i][1]
+		offspring = np.random.choice(np.concatenate([mom, dad]), N, replace = False)
+		offsprings.append(offspring)
+	return offsprings
+
+#Im not sure that this is necessary since we are already creating random 
+#combinations of parents in the offspring function
+#def mutations():
+
+#include mutants as an argument and in nextGen list if they actually are necessary
+#create a new vector for our next population
+def nextGen(best, offsprings):
+	nextGen = [best+offsprings]
+	return nextGen
+
+#to use each nextGen's populations after the initial/preceding gen is done,
+#i think we have to change some stuff in the main pgtest-1 file so we can feed this
+#newly created vector into vectoMat function so the network can run with the new gen
+
+#also -- maybe we make a function or set a condition in nextGen to determine 
+#when to stop creating new gens once the system converges
+
+#-----------------------------
 
 def sigmoid(x):
 	return 1/(1+np.exp(-x))

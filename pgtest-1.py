@@ -6,8 +6,6 @@ import AlgoTest as Al
 import numpy as np 
 
 
-#initialize pygame
-
 #define colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -171,7 +169,7 @@ def generateInput(headCol, headRow, headColDir, headRowDir, foodCol, foodRow, sn
 	return [i*1 for i in result]
 			
 #This function translates the AI output into actual directional change
-def changeDirAI(Dir,headColDir, headRowDir, grid_size): # 0=straight ahead, 1 = go back, 2 = left, 3 = right
+def changeDirAI(Dir,headColDir, headRowDir, grid_size): # 0=straight ahead, 1 = left, 2 = right
 	if headColDir != 0 or headRowDir != 0:
 		if Dir == 0:
 			colDir, rowDir = headColDir, headRowDir
@@ -193,7 +191,7 @@ def distance(x1, y1, x2, y2):
 	dist = math.sqrt((x1-x2)**2+(y1-y2)**2)
 	return dist
 
-#The fitness score is calculated by adding the length of the snake and how close the snake get to the current food from it's previous position
+#The fitness score is calculated by adding the length of the snake and how close the snake gets to the current food from it's previous position
 #The latter is calcualted by calculating the distance reduced 
 def fitness(bodyLength, initialDist, currentMinDist):
 	return bodyLength+(initialDist- currentMinDist)/initialDist
@@ -219,10 +217,10 @@ def main(canvasWidth, canvasHeight, gridSize):
 	outputNum = 3
 	neuronNums = [150, 100]
 
-	#a list of population
+	#a list of initial population
 	matVec = Al.initPopMat(inputNum,population,hiddenLayers,outputNum,neuronNums)
 
-	#the list containing the fitness scores
+	#a list containing the fitness scores for each snake in a given population
 	scores = []
 	
 	#loop through each network in the population
@@ -231,7 +229,7 @@ def main(canvasWidth, canvasHeight, gridSize):
 		foodObj.__init__(canvasWidth, canvasHeight, gridSize, snakeObj.body)
 		GameOver = False
 
-		#convert the vector into the matrix netowrk form
+		#convert the vector into the matrix network form
 		matMat = Al.vecToMat(vec,inputNum,hiddenLayers,outputNum,neuronNums)
 		stop = False
 
@@ -354,6 +352,7 @@ def main(canvasWidth, canvasHeight, gridSize):
 			#display.blit(bestSurface, bestRect)
 			#display.blit(currentSurface, currentRect)
 			pygame.display.flip()
+		
 		fitnessScore = fitness(snakeObj.length,ogDist,currentMinDist)
 		scores.append(fitnessScore)
 		#print(ogDist, currentMinDist)
