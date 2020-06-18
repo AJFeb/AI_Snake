@@ -27,7 +27,6 @@ neuron_num: A list indicating the number of neurons in each layer
 #This function returns a list of lists where each inner list is one network/chormosome and the entire list is a collection of networks
 def initPopMat(input_num, pop_num, layer_num, output_num, neuron_nums): 
 	vec_len = 0
-	gen_num = 0
 	for j in range(len(neuron_nums)):
 		if j == 0:
 			vec_len += input_num*neuron_nums[j]
@@ -68,45 +67,63 @@ def vecToMat(vector, input_num, layer_num, output_num, neuron_nums): #vector to 
 
 #--------------------------------
 
-#creating a list of the 25% most fit snakes from the previous generation
-#from which we will create children in our succeeding generation
-def bestParents(scores, listOfParents): 
-	sortedScoes = np.argsort(-scores)
-	best = []
+#creating a list of the 25% most fit snakes from the previous generation which will appear in our next generation as well and
+#from which we will create children in our next generation
+def bestParents(scores, listofParents): 
+	scorePairings = []
+	for i in range(len(scores)):
+		scorePairings.append([listofParents[i], scores[i]])
+	scorePairings.sort(key = lambda x: x[1], reverse = True)
+	bestParents = []
 	i = 0
-	while i < len(scores)/4:
-		best.append(listOfParents[sortedScoes[i]])
-	return best
+	while i < len(scorePairings)/4:
+		bestParents.append(scorePairings[i][0])
+		i += 1
+	return bestParents
 
-#creating random pairings between each of the best snakes
-def pairings(best):
+#creating random pairings between each of the most fit snake parents to produce 1 child each
+#such that 50% of our next gen population will be offspring of these parents
+def pairings(bestParents, pop_num):
 	pairs = []
-	for parent in best:
-		rand_index = randint(0, len(best)-1)
-		#so that each snake is guaranteed to be a mother and father at elast once
-		pairs.append([parent, best[rand_index]])
-		pairs.append([best[rand_index], parent])
+	for x in range(int(pop_num/2)):
+		rand_index1 = randint(0, len(bestParents)-1)
+		rand_index2 = randint(0, len(bestParents)-1)
+		while rand_index1 == rand_index2:
+			rand_index1 = randint(0, len(bestParents)-1)
+		pair = [bestParents[rand_index1], bestParents[rand_index2]]
+		while pair in pairs:
+			rand_index1 = randint(0, len(bestParents)-1)
+			rand_index2 = randint(0, len(bestParents)-1)
+			pair = [bestParents[rand_index1], bestParents[rand_index2]]
+		pairs.append(pair)
 	return pairs
 
 #create children for the next generation that are random combinations of their parents
 #and are of the same length as each parent
 def offspring(pairs):
-	offsprings = []
-	for i in range(len(pairs)-1):
-		mom = pairs[i][0]
-		dad = pairs[i][1]
-		offspring = np.random.choice(np.concatenate([mom, dad]), len(mom), replace = False)
-		offsprings.append(offspring)
-	return offsprings
+	children = []
+	for pair in pairs:
+		offspring = []
+		mom = pair[0]
+		dad = pair[1]
+		for i in range(len(mom)):
+			offspring.append(random.choice([mom[i], dad[i]]))#we can also add weights to see whether mama or papa is more likely to be chosen
+		children.append(offspring)
+	return children
 
-#Im not sure that this is necessary since we are already creating random 
-#combinations of parents in the offspring function
-#def mutations():
+#mutant children will make up the remaining 25% of the next generation
+def mutations(children):
+	mutantChildren = []
+	for x in range(int(len(children)/2)):
+		mutantChild = []
+		for i in range(len(children[0])):
+			mutantChild.append(random.uniform(-1,1))
+		mutantChildren.append(mutantChild)
+	return mutantChildren
 
-#include mutants as an argument and in nextGen list if they actually are necessary
 #create a new vector for our next population
-def nextGen(best, offsprings):
-	nextGen = [best+offsprings]
+def nextGen(bestParents, children, mutantChildren):
+	nextGen = [bestParents+children+mutantChildren]
 	return nextGen
 
 #to use each nextGen's populations after the initial/preceding gen is done,
