@@ -1,6 +1,7 @@
 import numpy as np 
 import copy
 from random import randint
+import random
 
 #input neurons, total of 7 features 
 """
@@ -84,21 +85,22 @@ def bestParents(scores, listofParents):
 #creating random pairings between each of the most fit snake parents to produce 1 child each
 #such that 50% of our next gen population will be offspring of these parents
 def pairings(bestParents, pop_num):
+	bestParents = [list(p) for p in bestParents]
 	pairs = []
 	for x in range(int(pop_num/2)):
 		rand_index1 = randint(0, len(bestParents)-1)
 		rand_index2 = randint(0, len(bestParents)-1)
 		while rand_index1 == rand_index2:
 			rand_index1 = randint(0, len(bestParents)-1)
-		pair = {bestParents[rand_index1], bestParents[rand_index2]}
+		pair = [bestParents[rand_index1], bestParents[rand_index2]]
 		while pair in pairs:
 			rand_index1 = randint(0, len(bestParents)-1)
 			rand_index2 = randint(0, len(bestParents)-1)
 			while rand_index1 == rand_index2:
 				rand_index1 = randint(0, len(bestParents)-1)
-			pair = {bestParents[rand_index1], bestParents[rand_index2]}
+			pair = [bestParents[rand_index1], bestParents[rand_index2]]
 		pairs.append(pair)
-	pairs = [list(pair) for pair in pairs]
+	#pairs = [list(pair) for pair in pairs]
 	return pairs
 
 #create children for the next generation that are random combinations of their parents
@@ -114,6 +116,7 @@ def offspring(pairs):
 		children.append(offspring)
 	return children
 
+
 #mutant children will make up the remaining 25% of the next generation
 def mutations(children):
 	mutantChildren = []
@@ -126,7 +129,7 @@ def mutations(children):
 
 #create a new vector for our next population
 def nextGen(bestParents, children, mutantChildren):
-	nextGen = [bestParents+children+mutantChildren]
+	nextGen = bestParents+children+mutantChildren
 	return nextGen
 
 #to use each nextGen's populations after the initial/preceding gen is done,
@@ -172,10 +175,6 @@ def predict(inputs, weights, activation = "tanh"):
 			layer = tanh(layer)
 
 	return np.argmax(layer)
-
-
-a = [{1,2,4},{1,2,4}]
-print({2,1,4} in a)
 
 
 

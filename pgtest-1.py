@@ -196,35 +196,37 @@ def distance(x1, y1, x2, y2):
 def fitness(bodyLength, initialDist, currentMinDist):
 	return bodyLength+(initialDist- currentMinDist)/initialDist
 
-def main(canvasWidth, canvasHeight, gridSize):
+def main(canvasWidth, canvasHeight, gridSize, generation,
+			inputNum, population, hiddenLayers, outputNum,
+			neuronNums):
 	global BEST_SCORE
 	global CURRENT_SCORE
 	#Initiliaze pygame, 
 	#our canvas as display, 
 	#the snake at the display's center, 
 	#and the first, random spawn location of the food
-	pygame.init()
-	display = pygame.display.set_mode((canvasWidth,canvasHeight))
+	#pygame.init()
+	#display = pygame.display.set_mode((canvasWidth,canvasHeight))
 	snakeObj = Snake(canvasWidth, canvasHeight, gridSize)
 	foodObj = Food(canvasWidth, canvasHeight, gridSize, snakeObj.body)
 	#The game will always run unless we close its window
 	stop = False
 	GameOver =False
 
-	inputNum = 7
-	population = 10
-	hiddenLayers = 2
-	outputNum = 3
-	neuronNums = [150, 100]
+	#inputNum = 7
+	#population = 10
+	#hiddenLayers = 2
+	#outputNum = 3
+	#neuronNums = [150, 100]
 
 	#a list of initial population
-	matVec = Al.initPopMat(inputNum,population,hiddenLayers,outputNum,neuronNums)
+	#matVec = Al.initPopMat(inputNum,population,hiddenLayers,outputNum,neuronNums)
 
 	#a list containing the fitness scores for each snake in a given population
 	scores = []
 	
 	#loop through each network in the population
-	for vec in matVec:
+	for vec in generation:
 		snakeObj.__init__(canvasWidth, canvasHeight, gridSize)
 		foodObj.__init__(canvasWidth, canvasHeight, gridSize, snakeObj.body)
 		GameOver = False
@@ -248,10 +250,10 @@ def main(canvasWidth, canvasHeight, gridSize):
 									foodObj.col, foodObj.row)
 		while stop == False:
 			#print(currentMinDist)
-			for event in pygame.event.get():
+			#for event in pygame.event.get():
 				#To quit the game by closing the window
-				if event.type == pygame.QUIT:
-					stop = True
+				#if event.type == pygame.QUIT:
+					#stop = True
 				#For movements
 
 
@@ -322,16 +324,16 @@ def main(canvasWidth, canvasHeight, gridSize):
 									foodObj.col, foodObj.row)
 				
 
-			pygame.display.update() 
-			display.fill(BLACK)
-			drawGrid(display, canvasWidth, canvasHeight, gridSize, WHITE)
-			display.blit(snakeObj.snakeHead ,(snakeObj.body[0][0], snakeObj.body[0][1]))
-			display.blit(foodObj.foodImage,(foodObj.col, foodObj.row))
+			#pygame.display.update() 
+			#display.fill(BLACK)
+			#drawGrid(display, canvasWidth, canvasHeight, gridSize, WHITE)
+			#display.blit(snakeObj.snakeHead ,(snakeObj.body[0][0], snakeObj.body[0][1]))
+			#display.blit(foodObj.foodImage,(foodObj.col, foodObj.row))
 			#Draw white filled, green outlined rectangles for each part of snake body, after the snake head
 			for i in range(1,len(snakeObj.body)):
 				snake_bod_rect = [snakeObj.body[i][0], snakeObj.body[i][1], gridSize, gridSize]
-				pygame.draw.rect(display, WHITE, snake_bod_rect)
-				pygame.draw.rect(display, GREEN, snake_bod_rect,1)
+				#pygame.draw.rect(display, WHITE, snake_bod_rect)
+				#pygame.draw.rect(display, GREEN, snake_bod_rect,1)
 			#Snake dies if the snake head reaches the boundaries of the screen or if the snake head touches any part of snake body
 				if snakeObj.body[0] == snakeObj.body[i]:
 					#print("Game Over")
@@ -351,7 +353,7 @@ def main(canvasWidth, canvasHeight, gridSize):
 			#currentSurface, currentRect = displayText(display, "Current Score: "+str(CURRENT_SCORE), 20, canvasWidth/2, 0, "Times")
 			#display.blit(bestSurface, bestRect)
 			#display.blit(currentSurface, currentRect)
-			pygame.display.flip()
+			#pygame.display.flip()
 		
 		fitnessScore = fitness(snakeObj.length,ogDist,currentMinDist)
 		scores.append(fitnessScore)
@@ -359,13 +361,51 @@ def main(canvasWidth, canvasHeight, gridSize):
 		#print(snakeObj.length, (ogDist- currentMinDist)/ogDist)
 
 
-	print(scores)
+	#print(scores)
 	scores = np.array(scores)
+
+	return scores
+
 	pygame.quit()
 	quit()
 
+
+
 	
+def train(inputNum, population, hiddenLayers, outputNum, neuronNums, generationNum):
+	canvasWidth = 300
+	canvasHeight = 300
+	gridSize = 50
+
+	initalMat = Al.initPopMat(inputNum, population, hiddenLayers, outputNum, neuronNums)
+
+	for g in range(generationNum):
+		print("Generation:" + str(g))
+		fitnessScores = main(canvasWidth, canvasHeight, gridSize, initalMat,
+							inputNum, population, hiddenLayers, outputNum, neuronNums)
+		print("Average Scores:"+str(np.mean(fitnessScores)))
+		parents = Al.bestParents(fitnessScores, initalMat)
+		pairs = Al.pairings(parents, population)
+		children = Al.offspring(pairs)
+		randomChildren = Al.mutations(children)
+		nextGeneration = Al.nextGen(parents, children, randomChildren)
+
+		initialMat = nextGeneration
+		print(len(initialMat))
 
 
-main(300,300,100)
+train(inputNum=7, population=10, hiddenLayers=2, outputNum=3, neuronNums=[150, 100], generationNum=10)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
