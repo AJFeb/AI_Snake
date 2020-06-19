@@ -90,12 +90,15 @@ def pairings(bestParents, pop_num):
 		rand_index2 = randint(0, len(bestParents)-1)
 		while rand_index1 == rand_index2:
 			rand_index1 = randint(0, len(bestParents)-1)
-		pair = [bestParents[rand_index1], bestParents[rand_index2]]
+		pair = {bestParents[rand_index1], bestParents[rand_index2]}
 		while pair in pairs:
 			rand_index1 = randint(0, len(bestParents)-1)
 			rand_index2 = randint(0, len(bestParents)-1)
-			pair = [bestParents[rand_index1], bestParents[rand_index2]]
+			while rand_index1 == rand_index2:
+				rand_index1 = randint(0, len(bestParents)-1)
+			pair = {bestParents[rand_index1], bestParents[rand_index2]}
 		pairs.append(pair)
+	pairs = [list(pair) for pair in pairs]
 	return pairs
 
 #create children for the next generation that are random combinations of their parents
@@ -169,5 +172,10 @@ def predict(inputs, weights, activation = "tanh"):
 			layer = tanh(layer)
 
 	return np.argmax(layer)
+
+
+a = [{1,2,4},{1,2,4}]
+print({2,1,4} in a)
+
 
 
