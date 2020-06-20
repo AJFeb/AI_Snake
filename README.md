@@ -1,2 +1,3 @@
 # AI_Snake
-Built and trained AI to play the game Snake
+Built the game snake using pygame,
+Built AI using Genetic Algorithm and Deep Learning to play snake!
