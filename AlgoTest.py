@@ -68,7 +68,7 @@ def vecToMat(vector, input_num, layer_num, output_num, neuron_nums): #vector to 
 
 #--------------------------------
 
-#creating a list of the 25% most fit snakes from the previous generation which will appear in our next generation as well and
+#creating a list of the 20% most fit snakes from the previous generation which will appear in our next generation as well and
 #from which we will create children in our next generation
 def bestParents(scores, listofParents): 
 	scorePairings = []
@@ -77,34 +77,39 @@ def bestParents(scores, listofParents):
 	scorePairings.sort(key = lambda x: x[1], reverse = True)
 	bestParents = []
 	i = 0
-	while i < len(scorePairings)/4:
+	while i < len(scorePairings)/5:
 		bestParents.append(scorePairings[i][0])
 		i += 1
 	return bestParents
 
 #creating random pairings between each of the most fit snake parents to produce 1 child each
-#such that 50% of our next gen population will be offspring of these parents
-def pairings(bestParents, pop_num):
+#such that 40% of our next gen population will be offspring of these parents
+def pairings(bestParents):
 	bestParents = [list(p) for p in bestParents]
+	#print("changed to the list")
 	pairs = []
-	for x in range(int(pop_num/2)):
+	for x in range(len(bestParents)*2):
+		#print(str(len(bestParents)*2))
+		#print("current:"+str(x))
 		rand_index1 = randint(0, len(bestParents)-1)
 		rand_index2 = randint(0, len(bestParents)-1)
 		while rand_index1 == rand_index2:
+			#print("loop2")
 			rand_index1 = randint(0, len(bestParents)-1)
 		pair = [bestParents[rand_index1], bestParents[rand_index2]]
 		while pair in pairs:
+			#print("loop3")
 			rand_index1 = randint(0, len(bestParents)-1)
 			rand_index2 = randint(0, len(bestParents)-1)
 			while rand_index1 == rand_index2:
+				#print("loop4")
 				rand_index1 = randint(0, len(bestParents)-1)
 			pair = [bestParents[rand_index1], bestParents[rand_index2]]
 		pairs.append(pair)
-	#pairs = [list(pair) for pair in pairs]
 	return pairs
 
-#create children for the next generation that are random combinations of their parents
-#and are of the same length as each parent
+#create children for the next generation that are take one chromosome of either parent
+#at a time and are of the same length as each parent
 def offspring(pairs):
 	children = []
 	for pair in pairs:
@@ -116,20 +121,32 @@ def offspring(pairs):
 		children.append(offspring)
 	return children
 
-
-#mutant children will make up the remaining 25% of the next generation
-def mutations(children):
-	mutantChildren = []
+#random children will make up another 20% of the next generation
+def randChildren(children):
+	randomChildren = []
 	for x in range(int(len(children)/2)):
-		mutantChild = []
+		randomChild = []
 		for i in range(len(children[0])):
-			mutantChild.append(random.uniform(-1,1))
+			randomChild.append(random.uniform(-1,1))
+		randomChildren.append(randomChild)
+	return randomChildren
+
+#to make up the remaining 20% of our next gen, we mutate a portion of 50% of the children from our offspring
+def mutChildren(children):
+	mutantChildren = []
+	for i in range(int(len(children)/2)):
+		mutantChild = []
+		for j in range(len(children[i])):
+			if j%2 == 0:
+				mutantChild.append(random.uniform(-1,1))
+			else:
+				mutantChild.append(children[i][j])
 		mutantChildren.append(mutantChild)
 	return mutantChildren
 
 #create a new vector for our next population
-def nextGen(bestParents, children, mutantChildren):
-	nextGen = bestParents+children+mutantChildren
+def nextGen(bestParents, children, randomChildren, mutantChildren):
+	nextGen = bestParents+children+randomChildren+mutantChildren
 	return nextGen
 
 #to use each nextGen's populations after the initial/preceding gen is done,
@@ -175,6 +192,4 @@ def predict(inputs, weights, activation = "tanh"):
 			layer = tanh(layer)
 
 	return np.argmax(layer)
-
-
 

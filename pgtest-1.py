@@ -360,7 +360,6 @@ def main(canvasWidth, canvasHeight, gridSize, generation,
 		#print(ogDist, currentMinDist)
 		#print(snakeObj.length, (ogDist- currentMinDist)/ogDist)
 
-
 	#print(scores)
 	scores = np.array(scores)
 
@@ -368,8 +367,6 @@ def main(canvasWidth, canvasHeight, gridSize, generation,
 
 	pygame.quit()
 	quit()
-
-
 
 	
 def train(inputNum, population, hiddenLayers, outputNum, neuronNums, generationNum):
@@ -383,29 +380,25 @@ def train(inputNum, population, hiddenLayers, outputNum, neuronNums, generationN
 		print("Generation:" + str(g))
 		fitnessScores = main(canvasWidth, canvasHeight, gridSize, initalMat,
 							inputNum, population, hiddenLayers, outputNum, neuronNums)
+		
 		print("Average Scores:"+str(np.mean(fitnessScores)))
 		parents = Al.bestParents(fitnessScores, initalMat)
-		pairs = Al.pairings(parents, population)
+		
+		pairs = Al.pairings(parents)
+		
 		children = Al.offspring(pairs)
-		randomChildren = Al.mutations(children)
-		nextGeneration = Al.nextGen(parents, children, randomChildren)
+		
+		randomChildren = Al.randChildren(children)
+		
+		mutantChildren = Al.mutChildren(children)
+		
+		
+		nextGeneration = Al.nextGen(parents, children, randomChildren, mutantChildren)
+		
 
 		initialMat = nextGeneration
 		print(len(initialMat))
 
 
-train(inputNum=7, population=10, hiddenLayers=2, outputNum=3, neuronNums=[150, 100], generationNum=10)
-
-
-
-
-
-
-
-
-
-
-
-
-
+train(inputNum=7, population=1000, hiddenLayers=2, outputNum=3, neuronNums=[14, 14], generationNum=15)
 
