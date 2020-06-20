@@ -135,12 +135,16 @@ def randChildren(children):
 def mutChildren(children):
 	mutantChildren = []
 	for i in range(int(len(children)/2)):
-		mutantChild = []
-		for j in range(len(children[i])):
-			if j%2 == 0:
-				mutantChild.append(random.uniform(-1,1))
-			else:
-				mutantChild.append(children[i][j])
+		mutantChild = children[i]
+		x = 0
+		indices_seen = []
+		while x < int(0.2*len(children[i])):
+			j = randint(0,len(children[i])-1)
+			while j in indices_seen:
+				j = randint(0,len(children[i])-1)
+			indices_seen.append(j)
+			mutantChild[j] = random.uniform(-1,1)
+			x += 1
 		mutantChildren.append(mutantChild)
 	return mutantChildren
 
@@ -149,15 +153,7 @@ def nextGen(bestParents, children, randomChildren, mutantChildren):
 	nextGen = bestParents+children+randomChildren+mutantChildren
 	return nextGen
 
-#to use each nextGen's populations after the initial/preceding gen is done,
-#i think we have to change some stuff in the main pgtest-1 file so we can feed this
-#newly created vector into vectoMat function so the network can run with the new gen
-
-#also -- maybe we make a function or set a condition in nextGen to determine 
-#when to stop creating new gens once the system converges
-
-#-----------------------------
-
+#use either sigmoid or tanh as our activation function to get each new matrix
 def sigmoid(x):
 	return 1/(1+np.exp(-x))
 

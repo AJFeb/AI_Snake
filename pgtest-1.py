@@ -400,5 +400,5 @@ def train(inputNum, population, hiddenLayers, outputNum, neuronNums, generationN
 		print(len(initialMat))
 
 
-train(inputNum=7, population=1000, hiddenLayers=2, outputNum=3, neuronNums=[14, 14], generationNum=15)
+train(inputNum=7, population=100, hiddenLayers=2, outputNum=3, neuronNums=[14, 14], generationNum=50)
 
