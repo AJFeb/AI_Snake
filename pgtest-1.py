@@ -193,8 +193,9 @@ def distance(x1, y1, x2, y2):
 
 #The fitness score is calculated by adding the length of the snake and how close the snake gets to the current food from it's previous position
 #The latter is calcualted by calculating the distance reduced 
-def fitness(bodyLength, initialDist, currentMinDist):
-	return bodyLength+(initialDist- currentMinDist)/initialDist
+def fitness(bodyLength, initialDist, currentMinDist,deathByLoop,
+								deathByBoundary, deathByBody):
+	return bodyLength*10+(initialDist- currentMinDist)/initialDist+deathByLoop+deathByBoundary+deathByBody
 
 def main(canvasWidth, canvasHeight, gridSize, generation,
 			inputNum, population, hiddenLayers, outputNum,
@@ -224,6 +225,10 @@ def main(canvasWidth, canvasHeight, gridSize, generation,
 
 	#a list containing the fitness scores for each snake in a given population
 	scores = []
+
+	deathByLoop = 0
+	deathByBody = 0
+	deathByBoundary = 0
 	
 	#loop through each network in the population
 	for vec in generation:
@@ -301,6 +306,7 @@ def main(canvasWidth, canvasHeight, gridSize, generation,
 			#so we terminate it by breaking this loop
 			stepCounter += 1
 			if stepCounter >= (canvasWidth*canvasHeight/(gridSize*gridSize))*0.8:
+				deathByLoop = -5
 				break
 
 			#When the snake head reaches the food, the snake grows by a length of 1 
@@ -337,6 +343,7 @@ def main(canvasWidth, canvasHeight, gridSize, generation,
 			#Snake dies if the snake head reaches the boundaries of the screen or if the snake head touches any part of snake body
 				if snakeObj.body[0] == snakeObj.body[i]:
 					#print("Game Over")
+					deathByBody = -50
 					CURRENT_SCORE = 0
 					GameOver = True
 					stop = True
@@ -344,6 +351,7 @@ def main(canvasWidth, canvasHeight, gridSize, generation,
 					#print(snakeObj.length, "LENGTH")
 			if snakeObj.body[0][0] > canvasHeight or snakeObj.body[0][0] < 0 or snakeObj.body[0][1] > canvasWidth or snakeObj.body[0][1] < 0:
 					#print("Game Over")
+					deathByBoundary = -50
 					CURRENT_SCORE = 0
 					GameOver = True
 					stop = True
@@ -355,7 +363,8 @@ def main(canvasWidth, canvasHeight, gridSize, generation,
 			#display.blit(currentSurface, currentRect)
 			#pygame.display.flip()
 		
-		fitnessScore = fitness(snakeObj.length,ogDist,currentMinDist)
+		fitnessScore = fitness(snakeObj.length,ogDist,currentMinDist, deathByLoop,
+								deathByBoundary, deathByBody)
 		scores.append(fitnessScore)
 		#print(ogDist, currentMinDist)
 		#print(snakeObj.length, (ogDist- currentMinDist)/ogDist)
@@ -400,5 +409,5 @@ def train(inputNum, population, hiddenLayers, outputNum, neuronNums, generationN
 		print(len(initialMat))
 
 
-train(inputNum=7, population=100, hiddenLayers=2, outputNum=3, neuronNums=[14, 14], generationNum=50)
+train(inputNum=7, population=1000, hiddenLayers=2, outputNum=3, neuronNums=[21, 14], generationNum=50)
 
