@@ -1,6 +1,6 @@
 # AI_Snake
 Built the game snake using pygame,  
-Built AI using Genetic Algorithm and Deep Learning to play the game!  
+Developed Genetic Algorithm Neural Network to play the game!  
   
 *Note: Fitness function and new generation functions will be further optimized
 
