@@ -102,6 +102,71 @@ def deathBody(headCol, headRow, snake_body):
 		return True
 	return False
 
+#for one of the eight directions, [distance to the wall, distance to food, distane to body]
+def oneDirInput(headCol, headRow, dCol, dRow, foodCol, foodRow, snake_body, grid_size, width, height):
+	if (dCol == 0 and dRow == 0):
+		dCol = 0
+		dRow = -grid_size
+	result = [0,0,0]
+	currentHeadCol, currentHeadRow = headCol+dCol, headRow+dRow
+	distance = 1
+	hitBody = False
+	hitFood = False
+	while (not deathBoundary(currentHeadCol,currentHeadRow, width, height) and hitFood==False):
+		if (foodCol==currentHeadCol and foodRow==currentHeadRow and hitFood == False):
+			result[1] = 1/distance
+			hitFood = True
+		if ([currentHeadCol, currentHeadRow] in snake_body[1:] and hitBody==False) :
+			result[2] = 1/distance 
+			hitBody == True
+		distance += 1
+		currentHeadCol, currentHeadRow = currentHeadCol+dCol, currentHeadRow+dRow
+
+	result[0] = 1/distance
+
+	return result
+
+def generateInput(headCol, headRow, headColDir, headRowDir, foodCol, foodRow, snake_body, grid_size,
+					width, height):
+	#print("generate")
+	inputs = []
+	#straight ahead
+	inputs.extend(oneDirInput(headCol, headRow, headColDir, headRowDir, foodCol, foodRow, snake_body, grid_size, width, height))
+	#print("1")
+
+	#45 degrees to the left 
+	dCol, dRow = headColDir+headRowDir, headRowDir-headColDir
+	inputs.extend(oneDirInput(headCol, headRow, dCol, dRow, foodCol, foodRow, snake_body, grid_size, width, height))
+	#print("2")
+
+	#90 degrees to the left
+	dCol, dRow = headRowDir, -headColDir
+	inputs.extend(oneDirInput(headCol, headRow, dCol, dRow, foodCol, foodRow, snake_body, grid_size, width, height))
+	#print(3)
+	#135 degrees to the left
+	dCol, dRow = dCol+dRow, dRow-dCol
+	inputs.extend(oneDirInput(headCol, headRow, dCol, dRow, foodCol, foodRow, snake_body, grid_size, width, height))
+
+	#180 degrees 
+	dCol, dRow = -headColDir, -headRowDir
+	inputs.extend(oneDirInput(headCol, headRow, dCol, dRow, foodCol, foodRow, snake_body, grid_size, width, height))
+	#print(4)
+	#225 degrees 
+	dCol, dRow = dCol+dRow, dRow-dCol
+	inputs.extend(oneDirInput(headCol, headRow, dCol, dRow, foodCol, foodRow, snake_body, grid_size, width, height))
+	#print(5)
+	#270 degrees
+	dCol, dRow = -headRowDir, headColDir
+	inputs.extend(oneDirInput(headCol, headRow, dCol, dRow, foodCol, foodRow, snake_body, grid_size, width, height))
+	#print(6)
+	#315 degrees 
+	dCol, dRow = dCol+dRow, dRow-dCol
+	inputs.extend(oneDirInput(headCol, headRow, dCol, dRow, foodCol, foodRow, snake_body, grid_size, width, height))
+	#print(7)
+	#print(inputs)
+	return inputs
+
+"""
 #this function generates the input for the neural network
 #it returns a list of binary values
 def generateInput(headCol, headRow, headColDir, headRowDir, foodCol, foodRow, snake_body, grid_size,
@@ -167,6 +232,7 @@ def generateInput(headCol, headRow, headColDir, headRowDir, foodCol, foodRow, sn
 			result.append(foodColDiff>0)
 
 	return [i*1 for i in result]
+"""
 			
 #This function translates the AI output into actual directional change
 def changeDirAI(Dir,headColDir, headRowDir, grid_size): # 0=straight ahead, 1 = left, 2 = right
@@ -194,8 +260,10 @@ def distance(x1, y1, x2, y2):
 #The fitness score is calculated by adding the length of the snake and how close the snake gets to the current food from it's previous position
 #The latter is calcualted by calculating the distance reduced 
 def fitness(bodyLength, initialDist, currentMinDist,deathByLoop,
-								deathByBoundary, deathByBody):
-	return bodyLength*10+(initialDist- currentMinDist)/initialDist+deathByLoop+deathByBoundary+deathByBody
+								deathByBoundary, deathByBody, totalSteps):
+	#return bodyLength*10+(initialDist- currentMinDist)/initialDist#+deathByLoop+deathByBoundary+deathByBody
+	apples = bodyLength - 1
+	return totalSteps+(2**apples+500*apples**2.1)-(apples**1.2)*((0.25*totalSteps)**1.3)
 
 def main(canvasWidth, canvasHeight, gridSize, generation,
 			inputNum, population, hiddenLayers, outputNum,
@@ -230,6 +298,8 @@ def main(canvasWidth, canvasHeight, gridSize, generation,
 	deathByBody = 0
 	deathByBoundary = 0
 	
+	currentMaxLength = 0
+
 	#loop through each network in the population
 	for vec in generation:
 		snakeObj.__init__(canvasWidth, canvasHeight, gridSize)
@@ -243,6 +313,7 @@ def main(canvasWidth, canvasHeight, gridSize, generation,
 		#count the steps taken to reach the current food
 		#if too many steps are taken then we will assume that the snake is going in a loop and thus will terminate
 		stepCounter = 0
+		totalSteps = 0
 
 		#the current Minimum distance between the snake and the food since
 		currentMinDist = distance(snakeObj.body[0][0],snakeObj.body[0][1],
@@ -281,6 +352,7 @@ def main(canvasWidth, canvasHeight, gridSize, generation,
 			#generate input
 			algo_input = generateInput(snakeObj.body[0][0], snakeObj.body[0][1], snakeObj.colDir, snakeObj.rowDir, 
 											foodObj.col, foodObj.row, snakeObj.body, gridSize, canvasWidth, canvasHeight)
+			#print(algo_input)
 			#predict the next move
 			newPred = Al.predict(algo_input, matMat)
 			#translate the prediction into movements on the grid
@@ -293,6 +365,7 @@ def main(canvasWidth, canvasHeight, gridSize, generation,
 
 			if GameOver == False:
 				snakeObj.move()
+				totalSteps += 1
 
 			#calculate the new distance between the snake and the food
 			#if the new distance after moving is closer than the current minimum, then we update the current min
@@ -363,15 +436,19 @@ def main(canvasWidth, canvasHeight, gridSize, generation,
 			#display.blit(currentSurface, currentRect)
 			#pygame.display.flip()
 		
+		if snakeObj.length > currentMaxLength:
+			currentMaxLength = snakeObj.length
 		fitnessScore = fitness(snakeObj.length,ogDist,currentMinDist, deathByLoop,
-								deathByBoundary, deathByBody)
+								deathByBoundary, deathByBody, totalSteps)
 		scores.append(fitnessScore)
 		#print(ogDist, currentMinDist)
 		#print(snakeObj.length, (ogDist- currentMinDist)/ogDist)
 
 	#print(scores)
 	scores = np.array(scores)
+	#bestScores = generation[np.argmax(scores)]
 
+	print("maximum length: "+str(currentMaxLength))
 	return scores
 
 	pygame.quit()
@@ -390,12 +467,16 @@ def train(inputNum, population, hiddenLayers, outputNum, neuronNums, generationN
 		fitnessScores = main(canvasWidth, canvasHeight, gridSize, initalMat,
 							inputNum, population, hiddenLayers, outputNum, neuronNums)
 		
-		print("Average Scores:"+str(np.mean(fitnessScores)))
+		print("Max Scores:"+str(max(fitnessScores)))
+		print("Standard Deviation: "+str(np.std(fitnessScores)))
 		parents = Al.bestParents(fitnessScores, initalMat)
+		print("parents")
 		
 		pairs = Al.pairings(parents)
+		#print(pairs)
 		
 		children = Al.offspring(pairs)
+		#print(children)
 		
 		randomChildren = Al.randChildren(children)
 		
@@ -409,5 +490,5 @@ def train(inputNum, population, hiddenLayers, outputNum, neuronNums, generationN
 		print(len(initialMat))
 
 
-train(inputNum=7, population=1000, hiddenLayers=2, outputNum=3, neuronNums=[21, 14], generationNum=50)
+train(inputNum=24, population=1000, hiddenLayers=2, outputNum=3, neuronNums=[18, 18], generationNum=50)
 
